@@ -59,6 +59,29 @@ const Footer = () => {
               Empowering college students to achieve academic excellence and maintain mental wellness through AI-powered insights and personalized coaching.
             </p>
 
+            <div className="mt-6 space-y-2 text-sm md:text-base">
+  <p className="font-semibold text-foreground">
+    Contact & Team
+  </p>
+
+  <p className="text-muted-foreground">
+    <span className="font-medium text-foreground">Founder & Designer:</span>{" "}
+    Mann Badaya
+  </p>
+
+  <p className="text-muted-foreground">
+    <span className="font-medium text-foreground">Co-Founder:</span>{" "}
+    Amrit Sharma
+  </p>
+
+  <p className="text-muted-foreground flex items-center gap-2">
+    <Icon name="Phone" size={16} className="text-primary" />
+    <span>+91 6350200535</span>
+  </p>
+</div>
+
+            
+
             <div className="flex items-center gap-3">
               {socialLinks?.map((social, index) => (
                 <a

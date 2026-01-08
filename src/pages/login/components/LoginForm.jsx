@@ -4,6 +4,8 @@ import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../../firebase';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -16,133 +18,114 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const mockCredentials = {
-    email: 'alex.johnson@stateuniversity.edu',
-    password: 'CampusMind2026!'
-  };
-
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData?.email) {
-      newErrors.email = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/?.test(formData?.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
     }
-
-    if (!formData?.password) {
+    if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData?.password?.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors)?.length === 0;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e?.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    if (errors?.[name]) {
+    if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const handleSubmit = async (e) => {
-    e?.preventDefault();
-    
+    e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
 
-    setTimeout(() => {
-      if (
-        formData?.email === mockCredentials?.email &&
-        formData?.password === mockCredentials?.password
-      ) {
-        navigate('/dashboard-overview');
-      } else {
-        setErrors({
-          submit: `Invalid credentials. Please use:\nEmail: ${mockCredentials?.email}\nPassword: ${mockCredentials?.password}`
-        });
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      navigate('/dashboard-overview');
+    } catch (error) {
+      let message = 'Login failed';
+
+      if (error.code === 'auth/user-not-found') {
+        message = 'User not found';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Incorrect password';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address';
       }
+
+      setErrors({ submit: message });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <Input
-          type="email"
-          name="email"
-          label="Email Address"
-          placeholder="your.email@university.edu"
-          value={formData?.email}
-          onChange={handleChange}
-          error={errors?.email}
-          required
-          disabled={isLoading}
-        />
-      </div>
+      <Input
+        type="email"
+        name="email"
+        label="Email Address"
+        value={formData.email}
+        onChange={handleChange}
+        error={errors.email}
+        disabled={isLoading}
+      />
+
       <div className="relative">
         <Input
           type={showPassword ? 'text' : 'password'}
           name="password"
           label="Password"
-          placeholder="Enter your password"
-          value={formData?.password}
+          value={formData.password}
           onChange={handleChange}
-          error={errors?.password}
-          required
+          error={errors.password}
           disabled={isLoading}
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-[38px] text-muted-foreground hover:text-foreground transition-smooth"
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
+          className="absolute right-3 top-[38px]"
         >
-          <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={20} />
+          <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={18} />
         </button>
       </div>
-      <div className="flex items-center justify-between">
-        <Checkbox
-          name="rememberMe"
-          label="Remember me"
-          checked={formData?.rememberMe}
-          onChange={handleChange}
-          disabled={isLoading}
-        />
-        <button
-          type="button"
-          onClick={() => navigate('/forgot-password')}
-          className="text-sm font-medium text-primary hover:text-primary/80 transition-smooth"
-        >
-          Forgot password?
-        </button>
-      </div>
-      {errors?.submit && (
-        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-md">
-          <div className="flex items-start gap-3">
-            <Icon name="AlertCircle" size={20} className="text-destructive flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-destructive whitespace-pre-line">{errors?.submit}</p>
-          </div>
-        </div>
+
+      <Checkbox
+        name="rememberMe"
+        label="Remember me"
+        checked={formData.rememberMe}
+        onChange={handleChange}
+        disabled={isLoading}
+      />
+
+      {errors.submit && (
+        <p className="text-sm text-destructive">{errors.submit}</p>
       )}
+
       <Button
         type="submit"
-        variant="default"
         fullWidth
         loading={isLoading}
-        disabled={isLoading}
         iconName="LogIn"
         iconPosition="right"
       >
-        {isLoading ? 'Signing in...' : 'Sign In'}
+        Sign In
       </Button>
     </form>
   );

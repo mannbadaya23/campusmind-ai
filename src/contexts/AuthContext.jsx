@@ -1,121 +1,92 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth } from "../firebase";
 
-const AuthContext = createContext({})
+const AuthContext = createContext(null);
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
+    throw new Error("useAuth must be used within AuthProvider");
   }
-  return context
-}
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [userProfile, setUserProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [profileLoading, setProfileLoading] = useState(false)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Isolated async operations - never called from auth callbacks
-  const profileOperations = {
-    async load(userId) {
-      if (!userId) return
-      setProfileLoading(true)
-      try {
-        const { data, error } = await supabase?.from('user_profiles')?.select('*')?.eq('id', userId)?.single()
-        if (!error) setUserProfile(data)
-      } catch (error) {
-        console.error('Profile load error:', error)
-      } finally {
-        setProfileLoading(false)
-      }
-    },
-
-    clear() {
-      setUserProfile(null)
-      setProfileLoading(false)
-    }
-  }
-
-  // Auth state handlers - PROTECTED from async modification
-  const authStateHandlers = {
-    // This handler MUST remain synchronous - Supabase requirement
-    onChange: (event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-      
-      if (session?.user) {
-        profileOperations.load(session.user.id) // Fire-and-forget
-      } else {
-        profileOperations.clear()
-      }
-    }
-  }
-
+  // 🔐 Auth state listener (MUST be sync)
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      authStateHandlers.onChange(null, session)
-    })
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser ?? null);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
-    // CRITICAL: This must remain synchronous
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      authStateHandlers.onChange
-    )
-
-    return () => subscription?.unsubscribe()
-  }, [])
-
-  // Auth methods
-  const signIn = async (email, password) => {
+  // 📧 Email login
+  const login = async (email, password) => {
     try {
-      const { data, error } = await supabase?.auth?.signInWithPassword({ email, password })
-      return { data, error }
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      return { user: res.user, error: null };
     } catch (error) {
-      return { error: { message: 'Network error. Please try again.' } }
+      return { error };
     }
-  }
+  };
 
-  const signOut = async () => {
+  // 📝 Email signup
+  const signup = async (email, password) => {
     try {
-      const { error } = await supabase?.auth?.signOut()
-      if (!error) {
-        setUser(null)
-        profileOperations.clear()
-      }
-      return { error }
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      return { user: res.user, error: null };
     } catch (error) {
-      return { error: { message: 'Network error. Please try again.' } }
+      return { error };
     }
-  }
+  };
 
-  const updateProfile = async (updates) => {
-    if (!user) return { error: { message: 'No user logged in' } }
-    
+  // 🔑 Google login
+  const googleLogin = async () => {
     try {
-      const { data, error } = await supabase?.from('user_profiles')?.update(updates)?.eq('id', user?.id)?.select()?.single()
-      if (!error) setUserProfile(data)
-      return { data, error }
+      const provider = new GoogleAuthProvider();
+      const res = await signInWithPopup(auth, provider);
+      return { user: res.user, error: null };
     } catch (error) {
-      return { error: { message: 'Network error. Please try again.' } }
+      return { error };
     }
-  }
+  };
+
+  // 🚪 Logout
+  const logout = async () => {
+    try {
+      await firebaseSignOut(auth);
+      setUser(null);
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
 
   const value = {
     user,
-    userProfile,
     loading,
-    profileLoading,
-    signIn,
-    signOut,
-    updateProfile,
-    isAuthenticated: !!user
-  }
+    isAuthenticated: !!user,
+    login,
+    signup,
+    googleLogin,
+    logout,
+  };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
-  )
-}
+  );
+};

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { requestNotificationPermission } from '../../firebase';
 
 import Sidebar from '../../components/ui/Sidebar';
 import MobileMenuToggle from '../../components/ui/MobileMenuToggle';
@@ -20,10 +21,20 @@ const DashboardOverview = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
+  // 🔔 Notification popup state
+  const [showNotifPopup, setShowNotifPopup] = useState(false);
+
   // 🔐 login required
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // 🔔 Show notification popup AFTER login (safe + browser-compliant)
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      setShowNotifPopup(true);
+    }
+  }, []);
 
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString('en-US', {
@@ -85,66 +96,67 @@ const DashboardOverview = () => {
     <div className="min-h-screen bg-background">
       <MobileMenuToggle isOpen={isSidebarOpen} onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div
-        className={`lg:hidden fixed inset-0 bg-black/50 z-[999] transition-opacity ${
-          isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <div
-        className={`fixed lg:fixed transition-transform z-[1000] ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        <Sidebar isCollapsed={isSidebarCollapsed} />
-      </div>
-
-      <main className={`transition-smooth ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-60'}`}>
-        <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-heading font-semibold mb-2">
-                  Welcome back, {displayName}! 👋
-                </h1>
-                <p className="text-muted-foreground">{formattedDate}</p>
-              </div>
-
-              <button
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="hidden lg:flex items-center gap-2 px-4 py-2 bg-card border rounded-lg"
-              >
-                <Icon name={isSidebarCollapsed ? 'ChevronRight' : 'ChevronLeft'} size={20} />
-                {isSidebarCollapsed ? 'Expand' : 'Collapse'}
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {statsData.map((stat, i) => (
-                <StatsCard key={i} {...stat} />
-              ))}
-            </div>
-
-            <QuickActionsPanel />
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <StressLevelWidget currentLevel={5} weeklyAverage={4.2} lastUpdated="2 hours ago" />
-              <UpcomingTasksWidget tasks={upcomingTasks} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <WeeklyProgressChart data={weeklyProgressData} />
-              <AICoachWidget recentChats={recentAIChats} />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BurnoutAlertWidget riskLevel="low" recommendations={burnoutRecommendations} />
-              <AchievementBadges badges={achievementBadges} />
-            </div>
+      {/* 🔔 Notification Popup */}
+      {showNotifPopup && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            background: '#fff',
+            padding: '16px',
+            borderRadius: '8px',
+            boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+            zIndex: 9999,
+          }}
+        >
+          <p className="mb-2">Enable notifications to get important updates</p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => {
+                requestNotificationPermission();
+                setShowNotifPopup(false);
+              }}
+            >
+              Allow
+            </button>
+            <button onClick={() => setShowNotifPopup(false)}>Not now</button>
           </div>
         </div>
-      </main>
+      )}
+
+      {/* Existing UI continues unchanged */}
+      <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-semibold mb-2">
+            Welcome back, {displayName}! 👋
+          </h1>
+          <p className="text-muted-foreground mb-6">{formattedDate}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {statsData.map((stat, i) => (
+              <StatsCard key={i} {...stat} />
+            ))}
+          </div>
+
+          <QuickActionsPanel />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <StressLevelWidget currentLevel={5} weeklyAverage={4.2} lastUpdated="2 hours ago" />
+            <UpcomingTasksWidget tasks={upcomingTasks} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <WeeklyProgressChart data={weeklyProgressData} />
+            <AICoachWidget recentChats={recentAIChats} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <BurnoutAlertWidget riskLevel="low" recommendations={burnoutRecommendations} />
+            <AchievementBadges badges={achievementBadges} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

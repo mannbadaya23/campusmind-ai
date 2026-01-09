@@ -5,7 +5,6 @@ import { requestNotificationPermission } from '../../firebase';
 
 import Sidebar from '../../components/ui/Sidebar';
 import MobileMenuToggle from '../../components/ui/MobileMenuToggle';
-import Icon from '../../components/AppIcon';
 
 import StatsCard from './components/StatsCard';
 import StressLevelWidget from './components/StressLevelWidget';
@@ -17,27 +16,21 @@ import BurnoutAlertWidget from './components/BurnoutAlertWidget';
 import QuickActionsPanel from './components/QuickActionsPanel';
 
 const DashboardOverview = () => {
-  const { user } = useAuth(); // ✅ auth user
+  const { user } = useAuth();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  // 🔔 Notification popup state
   const [showNotifPopup, setShowNotifPopup] = useState(false);
 
-  // 🔐 login required
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
-  // 🔔 Show notification popup AFTER login (safe + browser-compliant)
   useEffect(() => {
     if (Notification.permission === 'default') {
       setShowNotifPopup(true);
     }
   }, []);
 
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString('en-US', {
+  const formattedDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -46,73 +39,80 @@ const DashboardOverview = () => {
 
   const displayName = user?.email?.split('@')[0] || 'Student';
 
-  const statsData = [
-    { icon: 'Flame', label: 'Study Streak', value: '12 days', trend: 'up', trendValue: '+3 days', color: 'primary' },
-    { icon: 'Target', label: 'Tasks Completed', value: '24/30', trend: 'up', trendValue: '80%', color: 'success' },
-    { icon: 'Clock', label: 'Study Hours', value: '42.5h', trend: 'up', trendValue: '+5.2h', color: 'secondary' },
-    { icon: 'TrendingUp', label: 'Productivity', value: '87%', trend: 'up', trendValue: '+12%', color: 'accent' },
-  ];
-
-  const upcomingTasks = [
-    { id: 1, title: 'Complete Data Structures Assignment', dueDate: 'Jan 10, 2026', dueTime: '11:59 PM', priority: 'high' },
-    { id: 2, title: 'Review Calculus Chapter 5', dueDate: 'Jan 09, 2026', dueTime: '3:00 PM', priority: 'medium' },
-    { id: 3, title: 'Prepare for Physics Lab', dueDate: 'Jan 08, 2026', dueTime: '9:00 AM', priority: 'high' },
-    { id: 4, title: 'Read English Literature Chapters 3-4', dueDate: 'Jan 11, 2026', dueTime: '5:00 PM', priority: 'low' },
-  ];
-
-  const weeklyProgressData = [
-    { day: 'Mon', studyHours: 6, stressLevel: 4 },
-    { day: 'Tue', studyHours: 7, stressLevel: 5 },
-    { day: 'Wed', studyHours: 5, stressLevel: 3 },
-    { day: 'Thu', studyHours: 8, stressLevel: 6 },
-    { day: 'Fri', studyHours: 6, stressLevel: 4 },
-    { day: 'Sat', studyHours: 4, stressLevel: 2 },
-    { day: 'Sun', studyHours: 6, stressLevel: 3 },
-  ];
-
-  const recentAIChats = [
-    { id: 1, message: 'How can I improve my time management for upcoming exams?', timestamp: '2 hours ago' },
-    { id: 2, message: 'What are some effective stress relief techniques during finals week?', timestamp: 'Yesterday' },
-    { id: 3, message: 'Can you help me create a study schedule for next week?', timestamp: '2 days ago' },
-  ];
-
-  const achievementBadges = [
-    { id: 1, name: 'Week Warrior', icon: 'Trophy', earned: true, earnedDate: 'Jan 5, 2026' },
-    { id: 2, name: 'Stress Master', icon: 'Heart', earned: true, earnedDate: 'Jan 3, 2026' },
-    { id: 3, name: 'Early Bird', icon: 'Sunrise', earned: true, earnedDate: 'Jan 1, 2026' },
-    { id: 4, name: 'Task Crusher', icon: 'Zap', earned: false, earnedDate: null },
-    { id: 5, name: 'Study Marathon', icon: 'Award', earned: false, earnedDate: null },
-    { id: 6, name: 'Wellness Champion', icon: 'Star', earned: false, earnedDate: null },
-  ];
-
-  const burnoutRecommendations = [
-    'Take regular 10-minute breaks every hour',
-    'Practice mindfulness meditation for 5 minutes daily',
-    'Ensure 7-8 hours of sleep each night',
-    'Engage in physical activity for at least 30 minutes',
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
-      <MobileMenuToggle isOpen={isSidebarOpen} onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+    <div className="min-h-screen bg-background flex">
+      {/* SIDEBAR */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
+        onClose={() => setIsSidebarOpen(false)}
+        onToggleCollapse={() =>
+          setIsSidebarCollapsed((prev) => !prev)
+        }
+      />
 
-      {/* 🔔 Notification Popup */}
+      {/* MAIN CONTENT */}
+      <div
+        className={`
+          flex-1 transition-all duration-300
+          ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-60'}
+        `}
+      >
+        {/* MOBILE MENU */}
+        <MobileMenuToggle
+          isOpen={isSidebarOpen}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+
+        {/* CONTENT */}
+        <div className="pt-20 lg:pt-8 px-4 md:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {/* HEADER */}
+            <h1 className="text-2xl font-semibold mb-1">
+              Welcome back, {displayName}! 👋
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              {formattedDate}
+            </p>
+
+            {/* STATS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatsCard icon="Flame" label="Study Streak" value="12 days" />
+              <StatsCard icon="Target" label="Tasks Completed" value="24/30" />
+              <StatsCard icon="Clock" label="Study Hours" value="42.5h" />
+              <StatsCard icon="TrendingUp" label="Productivity" value="87%" />
+            </div>
+
+            <QuickActionsPanel />
+
+            {/* WIDGETS */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <StressLevelWidget />
+              <UpcomingTasksWidget />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <WeeklyProgressChart />
+              <AICoachWidget />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <BurnoutAlertWidget />
+              <AchievementBadges />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* NOTIFICATION */}
       {showNotifPopup && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            background: '#fff',
-            padding: '16px',
-            borderRadius: '8px',
-            boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-            zIndex: 9999,
-          }}
-        >
-          <p className="mb-2">Enable notifications to get important updates</p>
-          <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="fixed bottom-5 right-5 bg-white p-4 rounded-lg shadow-lg z-[2000]">
+          <p className="mb-2 text-sm">
+            Enable notifications to get important updates
+          </p>
+          <div className="flex gap-2">
             <button
+              className="px-3 py-1 bg-primary text-white rounded"
               onClick={() => {
                 requestNotificationPermission();
                 setShowNotifPopup(false);
@@ -120,43 +120,15 @@ const DashboardOverview = () => {
             >
               Allow
             </button>
-            <button onClick={() => setShowNotifPopup(false)}>Not now</button>
+            <button
+              className="px-3 py-1 border rounded"
+              onClick={() => setShowNotifPopup(false)}
+            >
+              Not now
+            </button>
           </div>
         </div>
       )}
-
-      {/* Existing UI continues unchanged */}
-      <div className="p-4 md:p-6 lg:p-8 pt-20 lg:pt-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-semibold mb-2">
-            Welcome back, {displayName}! 👋
-          </h1>
-          <p className="text-muted-foreground mb-6">{formattedDate}</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {statsData.map((stat, i) => (
-              <StatsCard key={i} {...stat} />
-            ))}
-          </div>
-
-          <QuickActionsPanel />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <StressLevelWidget currentLevel={5} weeklyAverage={4.2} lastUpdated="2 hours ago" />
-            <UpcomingTasksWidget tasks={upcomingTasks} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <WeeklyProgressChart data={weeklyProgressData} />
-            <AICoachWidget recentChats={recentAIChats} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BurnoutAlertWidget riskLevel="low" recommendations={burnoutRecommendations} />
-            <AchievementBadges badges={achievementBadges} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

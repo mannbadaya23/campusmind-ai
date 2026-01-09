@@ -9,7 +9,6 @@ import Icon from '../../components/AppIcon';
 import { auth } from '../../firebase';
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
@@ -17,38 +16,38 @@ import {
 const Login = () => {
   const navigate = useNavigate();
 
-  // 🔹 ADD STATES (safe)
+  // ✅ STATE (SAFE – NO UI CHANGE)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 EMAIL LOGIN / SIGNUP
-  const handleEmailAuth = async () => {
+  // ✅ EMAIL LOGIN ONLY (NO SIGNUP HERE)
+  const handleEmailLogin = async () => {
+    if (!email || !password) {
+      alert('Please enter email and password');
+      return;
+    }
+
     try {
       setLoading(true);
-      if (isSignup) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
+      await signInWithEmailAndPassword(auth, email, password);
       navigate('/dashboard-overview');
-    } catch (e) {
-      alert(e.message);
+    } catch (error) {
+      alert(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 GOOGLE LOGIN
-  const handleGoogleAuth = async () => {
+  // ✅ GOOGLE LOGIN
+  const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       navigate('/dashboard-overview');
-    } catch (e) {
-      alert(e.message);
+    } catch (error) {
+      alert(error.message);
     } finally {
       setLoading(false);
     }
@@ -68,17 +67,15 @@ const Login = () => {
         <div className="bg-card border border-border rounded-2xl shadow-soft-xl p-6 md:p-8 lg:p-10 space-y-8">
           <WelcomeHeader />
 
-          {/* 🔹 ONLY THIS LINE CHANGES */}
+          {/* ✅ LOGIN FORM (NO UI CHANGE) */}
           <LoginForm
             email={email}
             password={password}
             setEmail={setEmail}
             setPassword={setPassword}
-            isSignup={isSignup}
-            setIsSignup={setIsSignup}
             loading={loading}
-            onEmailAuth={handleEmailAuth}
-            onGoogleAuth={handleGoogleAuth}
+            onEmailAuth={handleEmailLogin}
+            onGoogleAuth={handleGoogleLogin}
           />
 
           <SignupRedirect />

@@ -23,70 +23,41 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔐 Auth state listener (MUST be sync)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser ?? null);
+      setUser(firebaseUser);
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  // 📧 Email login
-  const login = async (email, password) => {
-    try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      return { user: res.user, error: null };
-    } catch (error) {
-      return { error };
-    }
-  };
+  const login = (email, password) =>
+    signInWithEmailAndPassword(auth, email, password);
 
-  // 📝 Email signup
-  const signup = async (email, password) => {
-    try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      return { user: res.user, error: null };
-    } catch (error) {
-      return { error };
-    }
-  };
+  const signup = (email, password) =>
+    createUserWithEmailAndPassword(auth, email, password);
 
-  // 🔑 Google login
-  const googleLogin = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const res = await signInWithPopup(auth, provider);
-      return { user: res.user, error: null };
-    } catch (error) {
-      return { error };
-    }
-  };
+  const googleLogin = () =>
+    signInWithPopup(auth, new GoogleAuthProvider());
 
-  // 🚪 Logout
   const logout = async () => {
-    try {
-      await firebaseSignOut(auth);
-      setUser(null);
-      return { error: null };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    isAuthenticated: !!user,
-    login,
-    signup,
-    googleLogin,
-    logout,
+    await firebaseSignOut(auth);
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated: !!user,
+        login,
+        signup,
+        googleLogin,
+        logout,
+      }}
+    >
+      {children}
     </AuthContext.Provider>
   );
 };

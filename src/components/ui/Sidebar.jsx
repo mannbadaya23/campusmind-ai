@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,112 +6,87 @@ import { useAuth } from '../../contexts/AuthContext';
 const Sidebar = ({ isCollapsed = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // 🔧 FIX: include loading
+  const { user, logout, loading } = useAuth();
 
   const navigationItems = [
     { label: 'Dashboard', path: '/dashboard-overview', icon: 'LayoutDashboard' },
     { label: 'Stress & Wellness', path: '/stress-and-burnout-tracking', icon: 'Heart' },
-    { label: 'Study Planner', path: '/study-planner', icon: 'Calendar', badge: 3 },
+    { label: 'Study Planner', path: '/study-planner', icon: 'Calendar' },
     { label: 'AI Coach', path: '/ai-coach', icon: 'MessageSquare' },
     { label: 'Resources', path: '/resources', icon: 'BookOpen' },
   ];
 
-  const displayName = user?.email?.split('@')[0] || 'Student';
+  // 🔧 FIX: loading-safe display name
+  const displayName = loading
+    ? 'Loading…'
+    : user?.email?.split('@')[0] || 'Student';
 
   const handleLogout = async () => {
-    await signOut();
+    await logout();
     navigate('/login');
   };
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-card border-r border-border transition-smooth z-[1000] ${
-        isCollapsed ? 'w-20 sidebar-collapsed' : 'w-60'
-      }`}
+      className={`fixed top-0 left-0 h-full bg-card border-r border-border z-[1000]
+        ${isCollapsed ? 'w-20' : 'w-60'}
+      `}
     >
       <div className="flex flex-col h-full">
         {/* LOGO */}
-        <div className="sidebar-header flex items-center px-4 py-4">
+        <div className="flex items-center gap-3 px-4 py-4">
           <Icon name="Brain" size={24} className="text-primary" />
           {!isCollapsed && (
-            <span className="ml-3 text-lg font-heading font-semibold">
-              CampusMind AI
-            </span>
+            <span className="text-lg font-semibold">CampusMind AI</span>
           )}
         </div>
 
         {/* NAVIGATION */}
-        <nav className="flex-1 px-4 space-y-3 overflow-y-auto">
+        <nav className="flex-1 px-3 space-y-2">
           {navigationItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={`flex items-center h-12 px-4 rounded-md transition-smooth ${
-                  isActive
-                    ? 'bg-gradient-to-r from-primary/10 to-secondary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                className={`flex items-center h-11 px-3 rounded-md transition
+                  ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted'
+                  }
+                `}
               >
                 <Icon name={item.icon} size={20} />
                 {!isCollapsed && (
-                  <>
-                    <span className="ml-3 font-medium">{item.label}</span>
-                    {item.badge && (
-                      <span className="ml-auto w-5 h-5 text-xs flex items-center justify-center bg-accent rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
+                  <span className="ml-3">{item.label}</span>
                 )}
               </NavLink>
             );
           })}
         </nav>
 
-        {/* USER SECTION */}
+        {/* USER + LOGOUT */}
         <div className="p-4 border-t border-border">
-          <button
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className={`flex items-center w-full h-12 px-4 rounded-md hover:bg-muted transition-smooth ${
-              isCollapsed ? 'justify-center' : ''
-            }`}
-          >
-            <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-medium">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-
-            {!isCollapsed && (
-              <>
-                <div className="ml-3 text-left flex-1">
-                  <div className="text-sm font-medium">{displayName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Logged in
-                  </div>
-                </div>
-                <Icon
-                  name="ChevronUp"
-                  size={16}
-                  className={`transition-smooth ${
-                    userMenuOpen ? 'rotate-180' : ''
-                  }`}
-                />
-              </>
-            )}
-          </button>
-
-          {userMenuOpen && (
-            <div className="mt-2 border rounded-md overflow-hidden">
-              <button
-                onClick={handleLogout}
-                className="w-full px-4 py-3 text-sm text-destructive hover:bg-muted transition-smooth text-left"
-              >
-                Logout
-              </button>
+          {!isCollapsed && (
+            <div className="mb-3 text-sm text-muted-foreground">
+              Logged in as <br />
+              <span className="font-medium text-foreground">
+                {displayName}
+              </span>
             </div>
           )}
+
+          <button
+            onClick={handleLogout}
+            disabled={loading}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-muted rounded-md disabled:opacity-50"
+          >
+            <Icon name="LogOut" size={18} />
+            {!isCollapsed && 'Logout'}
+          </button>
         </div>
       </div>
     </aside>

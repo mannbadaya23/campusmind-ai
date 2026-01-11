@@ -4,46 +4,46 @@ import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
 import { auth } from '../../../firebase';
 
 const LoginForm = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false
+    rememberMe: false,
   });
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-
+    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.password) newErrors.password = 'Password is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = async (e) => {
+  // ✅ EMAIL LOGIN
+  const handleEmailLogin = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -56,27 +56,34 @@ const LoginForm = () => {
         formData.email,
         formData.password
       );
-
       navigate('/dashboard-overview');
     } catch (error) {
-      let message = 'Login failed';
+      let msg = 'Login failed';
+      if (error.code === 'auth/user-not-found') msg = 'User not found';
+      if (error.code === 'auth/wrong-password') msg = 'Incorrect password';
+      if (error.code === 'auth/invalid-email') msg = 'Invalid email';
+      setErrors({ submit: msg });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      if (error.code === 'auth/user-not-found') {
-        message = 'User not found';
-      } else if (error.code === 'auth/wrong-password') {
-        message = 'Incorrect password';
-      } else if (error.code === 'auth/invalid-email') {
-        message = 'Invalid email address';
-      }
-
-      setErrors({ submit: message });
+  // ✅ GOOGLE LOGIN (THIS WAS MISSING)
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate('/dashboard-overview');
+    } catch (error) {
+      alert(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleEmailLogin} className="space-y-6">
       <Input
         type="email"
         name="email"
@@ -118,6 +125,7 @@ const LoginForm = () => {
         <p className="text-sm text-destructive">{errors.submit}</p>
       )}
 
+      {/* EMAIL LOGIN */}
       <Button
         type="submit"
         fullWidth
@@ -126,6 +134,18 @@ const LoginForm = () => {
         iconPosition="right"
       >
         Sign In
+      </Button>
+
+      {/* GOOGLE LOGIN (NOW VISIBLE & WORKING) */}
+      <Button
+        type="button"
+        variant="outline"
+        fullWidth
+        onClick={handleGoogleLogin}
+        disabled={isLoading}
+      >
+        <Icon name="Google" size={18} className="mr-2" />
+        Continue with Google
       </Button>
     </form>
   );

@@ -25,6 +25,15 @@ const DashboardOverview = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => (document.body.style.overflow = '');
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
     if (Notification.permission === 'default') {
       setShowNotifPopup(true);
     }
@@ -40,76 +49,60 @@ const DashboardOverview = () => {
   const displayName = user?.email?.split('@')[0] || 'Student';
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* SIDEBAR */}
+    <div className="min-h-screen bg-background">
+      <MobileMenuToggle
+        isOpen={isSidebarOpen}
+        onClick={() => setIsSidebarOpen(true)}
+      />
+
       <Sidebar
         isOpen={isSidebarOpen}
         isCollapsed={isSidebarCollapsed}
         onClose={() => setIsSidebarOpen(false)}
-        onToggleCollapse={() =>
-          setIsSidebarCollapsed((prev) => !prev)
-        }
+        onToggleCollapse={() => setIsSidebarCollapsed((p) => !p)}
       />
 
-      {/* MAIN CONTENT */}
-      <div
+      <main
         className={`
-          flex-1 transition-all duration-300
+          pt-20 lg:pt-8 transition-all duration-300
           ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-60'}
         `}
       >
-        {/* MOBILE MENU */}
-        <MobileMenuToggle
-          isOpen={isSidebarOpen}
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
+        <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+          <h1 className="text-2xl font-semibold mb-1">
+            Welcome back, {displayName}! 👋
+          </h1>
+          <p className="text-muted-foreground mb-6">{formattedDate}</p>
 
-        {/* CONTENT */}
-        <div className="pt-20 lg:pt-8 px-4 md:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            {/* HEADER */}
-            <h1 className="text-2xl font-semibold mb-1">
-              Welcome back, {displayName}! 👋
-            </h1>
-            <p className="text-muted-foreground mb-6">
-              {formattedDate}
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatsCard icon="Flame" label="Study Streak" value="12 days" />
+            <StatsCard icon="Target" label="Tasks Completed" value="24/30" />
+            <StatsCard icon="Clock" label="Study Hours" value="42.5h" />
+            <StatsCard icon="TrendingUp" label="Productivity" value="87%" />
+          </div>
 
-            {/* STATS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatsCard icon="Flame" label="Study Streak" value="12 days" />
-              <StatsCard icon="Target" label="Tasks Completed" value="24/30" />
-              <StatsCard icon="Clock" label="Study Hours" value="42.5h" />
-              <StatsCard icon="TrendingUp" label="Productivity" value="87%" />
-            </div>
+          <QuickActionsPanel />
 
-            <QuickActionsPanel />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <StressLevelWidget />
+            <UpcomingTasksWidget />
+          </div>
 
-            {/* WIDGETS */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <StressLevelWidget />
-              <UpcomingTasksWidget />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <WeeklyProgressChart />
+            <AICoachWidget />
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <WeeklyProgressChart />
-              <AICoachWidget />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BurnoutAlertWidget />
-              <AchievementBadges />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <BurnoutAlertWidget />
+            <AchievementBadges />
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* NOTIFICATION */}
       {showNotifPopup && (
         <div className="fixed bottom-5 right-5 bg-white p-4 rounded-lg shadow-lg z-[2000]">
-          <p className="mb-2 text-sm">
-            Enable notifications to get important updates
-          </p>
+          <p className="mb-2 text-sm">Enable notifications</p>
           <div className="flex gap-2">
             <button
               className="px-3 py-1 bg-primary text-white rounded"

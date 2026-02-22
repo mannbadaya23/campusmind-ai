@@ -1,9 +1,13 @@
 import React from "react";
 import Routes from "./Routes";
+import GeminiChatbot from "./components/GeminiChatbot";
 
 function App() {
   return (
-    <Routes />
+    <>
+      <Routes />
+      <GeminiChatbot />
+    </>
   );
 }
 

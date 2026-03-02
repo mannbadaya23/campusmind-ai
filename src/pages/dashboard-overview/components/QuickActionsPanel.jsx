@@ -25,14 +25,15 @@ const QuickActionsPanel = () => {
       label: 'AI Coach',
       icon: 'MessageSquare',
       color: 'from-accent/10 to-accent/5 text-accent hover:from-accent/20 hover:to-accent/10',
-      onClick: () => console.log('AI Coach clicked'),
+      onClick: () => navigate('/ai-coach'),
     },
     {
       id: 4,
-      label: 'Resources',
-      icon: 'BookOpen',
+      label: 'Guidance Hub',
+      icon: 'GraduationCap',
       color: 'from-success/10 to-success/5 text-success hover:from-success/20 hover:to-success/10',
-      onClick: () => console.log('Resources clicked'),
+      onClick: () => navigate('/guidance-hub'),
+      
     },
   ];
 

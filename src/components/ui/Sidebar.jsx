@@ -17,8 +17,8 @@ const Sidebar = ({
     { label: 'Dashboard', path: '/dashboard-overview', icon: 'LayoutDashboard' },
     { label: 'Stress & Wellness', path: '/stress-and-burnout-tracking', icon: 'Heart' },
     { label: 'Study Planner', path: '/study-planner', icon: 'Calendar' },
+    { label: 'Guidance Hub', path: '/guidance-hub', icon: 'GraduationCap' },
     { label: 'AI Coach', path: '/ai-coach', icon: 'MessageSquare' },
-    { label: 'Resources', path: '/resources', icon: 'BookOpen' },
   ];
 
   const displayName = loading

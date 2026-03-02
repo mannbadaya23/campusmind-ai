@@ -10,6 +10,7 @@ import BurnoutRiskIndicator from './components/BurnoutRiskIndicator';
 import CorrelationAnalysis from './components/CorrelationAnalysis';
 import WeeklySummary from './components/WeeklySummary';
 import AlertNotification from './components/AlertNotification';
+import MoodTracker from './components/MoodTracker';
 
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
@@ -132,6 +133,9 @@ const StressAndBurnoutTracking = () => {
 
           {/* ALERT */}
           <AlertNotification alerts={alerts} />
+
+            {/* Mood Tracker */}
+            <MoodTracker />
 
           {/* CONTENT */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

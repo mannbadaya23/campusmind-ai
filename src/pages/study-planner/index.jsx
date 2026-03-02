@@ -10,6 +10,8 @@ import AIRecommendationPanel from './components/AIRecommendationPanel';
 import WeeklyCalendar from './components/WeeklyCalendar';
 import StatsOverview from './components/StatsOverview';
 import FilterBar from './components/FilterBar';
+import PomodoroTimer from './components/PomodoroTimer';
+import HabitTracker from './components/HabitTracker';
 
 const StudyPlanner = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -436,6 +438,12 @@ const StudyPlanner = () => {
                     recommendations={aiRecommendations}
                     onApplyRecommendation={handleApplyRecommendation}
                   />
+
+              {/* Pomodoro + Habit Tracker */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <PomodoroTimer />
+                <HabitTracker />
+              </div>
                 </div>
               </div>
             </div>

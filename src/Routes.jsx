@@ -12,6 +12,8 @@ import StressAndBurnoutTracking from "./pages/stress-and-burnout-tracking";
 import LandingPage from "./pages/landing-page";
 import StudyPlanner from "./pages/study-planner";
 import Signup from "./pages/signup";
+import GuidanceHub from "./pages/guidance-hub";
+import AICoach from "./pages/ai-coach";
 
 const Routes = () => {
   return (
@@ -50,6 +52,24 @@ const Routes = () => {
             element={
               <ProtectedRoute>
                 <StressAndBurnoutTracking />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/guidance-hub"
+            element={
+              <ProtectedRoute>
+                <GuidanceHub />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ai-coach"
+            element={
+              <ProtectedRoute>
+                <AICoach />
               </ProtectedRoute>
             }
           />

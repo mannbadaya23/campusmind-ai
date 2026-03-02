@@ -65,7 +65,7 @@ const Footer = () => {
   </p>
 
   <p className="text-muted-foreground">
-    <span className="font-medium text-foreground">Founder & Designer:</span>{" "}
+    <span className="font-medium text-foreground">Founder & CEO:</span>{" "}
     Mann Badaya
   </p>
 

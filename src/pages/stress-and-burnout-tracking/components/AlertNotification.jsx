@@ -1,8 +1,10 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
+  const navigate = useNavigate();
   if (!alerts || alerts?.length === 0) return null;
 
   return (
@@ -70,6 +72,7 @@ const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
                   iconName="MessageSquare"
                   iconPosition="left"
                   className="sm:flex-1"
+                  onClick={() => navigate('/ai-coach')}
                 >
                   Talk to AI Coach
                 </Button>

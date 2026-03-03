@@ -1,8 +1,10 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
-
+import { useNavigate } from 'react-router-dom';
 
 const AICoachWidget = ({ recentChats }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-card border border-border rounded-xl p-4 md:p-6 shadow-soft">
       <div className="flex items-center justify-between mb-4 md:mb-6">
@@ -13,6 +15,7 @@ const AICoachWidget = ({ recentChats }) => {
         {recentChats?.map((chat) => (
           <div
             key={chat?.id}
+            onClick={() => navigate('/ai-coach')}
             className="flex items-start gap-3 p-3 md:p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg hover:from-primary/10 hover:to-secondary/10 transition-smooth cursor-pointer"
           >
             <div className="flex-shrink-0">
@@ -28,7 +31,10 @@ const AICoachWidget = ({ recentChats }) => {
         ))}
       </div>
       <div className="pt-4 border-t border-border">
-        <button className="w-full flex items-center justify-center gap-2 py-2 md:py-3 text-sm md:text-base font-medium text-primary hover:text-primary/80 transition-smooth">
+        <button
+          onClick={() => navigate('/ai-coach')}
+          className="w-full flex items-center justify-center gap-2 py-2 md:py-3 text-sm md:text-base font-medium text-primary hover:text-primary/80 transition-smooth"
+        >
           <Icon name="MessageCircle" size={18} />
           Start New Conversation
         </button>

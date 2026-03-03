@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = `You are CampusMind AI Coach, a highly supportive and expe
 
 Your expertise covers:
 1. STUDY PLANNING: Create personalized study schedules, topic prioritization, exam preparation strategies, subject-wise tips
-2. MENTAL HEALTH: Help with stress, anxiety, overwhelm, burnout, loneliness, imposter syndrome — with empathy and practical advice
+2. MENTAL HEALTH: Help with stress, anxiety, overwhelm, burnout, loneliness, imposter syndrome with empathy and practical advice
 3. PHYSICAL WELLNESS: Sleep hygiene, exercise routines for students, nutrition tips, energy management
 4. MOTIVATION: Inspire students, help with procrastination, goal setting, building confidence
 5. ACADEMIC SUPPORT: Study techniques (Pomodoro, spaced repetition, active recall), note-taking, exam strategies
@@ -27,19 +27,47 @@ Your expertise covers:
 Your personality:
 - Warm, empathetic, and non-judgmental
 - Like a caring senior who has been through it all
-- Practical and actionable — always give specific steps
+- Practical and actionable always give specific steps
 - Use emojis occasionally to keep it friendly
 - Ask follow-up questions to personalize advice
 - Keep responses concise but impactful (max 250 words unless making a schedule)
 - Always end with an encouraging note or a question to continue the conversation
 
-Remember: Students come to you when they're struggling. Be their safe space. 🌟`;
+Remember: Students come to you when they are struggling. Be their safe space.`;
 
 const BOT_AVATAR = (
   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-md">
     <span className="text-white text-sm font-bold">AI</span>
   </div>
 );
+
+// Real YouTube lofi/focus music - opens in small popup player
+const TRACKS = [
+  { 
+    name: "Lofi Study Beats", 
+    emoji: "🎵", 
+    youtubeId: "jfKfPfyJRdk", // lofi hip hop radio - beats to relax/study
+    description: "Lofi Hip Hop Radio"
+  },
+  { 
+    name: "Deep Focus", 
+    emoji: "🧠", 
+    youtubeId: "5qap5aO4i9A", // lofi hip hop radio - beats to study
+    description: "Chillhop Radio"
+  },
+  { 
+    name: "Calm Piano", 
+    emoji: "🎹", 
+    youtubeId: "4oStw0r33so", // peaceful piano
+    description: "Peaceful Piano"
+  },
+  { 
+    name: "White Noise", 
+    emoji: "🌊", 
+    youtubeId: "nMfPqeZjc2c", // white noise for studying
+    description: "White Noise & Rain"
+  },
+];
 
 function TypingIndicator() {
   return (
@@ -84,21 +112,14 @@ export default function AICoach() {
   const [messages, setMessages] = useState([
     {
       role: "bot",
-      text: "Hey there! 👋 I'm your CampusMind AI Coach — your personal guide for studies, stress, mental health, and everything in between!\n\nI'm here to help you:\n📚 Plan your studies & topics\n😌 Manage stress & anxiety\n💪 Stay motivated & focused\n🧘 Take care of your mental health\n⏰ Master time management\n\nWhat's on your mind today? Tell me anything — I'm your safe space! 🌟",
+      text: "Hey there! I am your CampusMind AI Coach your personal guide for studies, stress, mental health, and everything in between!\n\nI am here to help you:\n📚 Plan your studies & topics\n😌 Manage stress & anxiety\n💪 Stay motivated & focused\n🧘 Take care of your mental health\n⏰ Master time management\n\nWhat is on your mind today? Tell me anything I am your safe space! 🌟",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeMode, setActiveMode] = useState("chat");
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(0);
-
-  const TRACKS = [
-    { name: "Lofi Study Beats", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", emoji: "🎵" },
-    { name: "Deep Focus", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", emoji: "🧠" },
-    { name: "Calm Piano", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", emoji: "🎹" },
-    { name: "White Noise", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3", emoji: "🌊" },
-  ];
+  const [showYouTube, setShowYouTube] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -110,17 +131,14 @@ export default function AICoach() {
     const userText = text || input.trim();
     if (!userText || isLoading) return;
     setInput("");
-
     const newMessages = [...messages, { role: "user", text: userText }];
     setMessages(newMessages);
     setIsLoading(true);
-
     try {
       const history = newMessages.map((m) => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.text }],
       }));
-
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
         {
@@ -133,14 +151,12 @@ export default function AICoach() {
           }),
         }
       );
-
       const data = await res.json();
       const botText = data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "Sorry, I couldn't process that. Please try again! 🙏";
-
+        "Sorry, I could not process that. Please try again!";
       setMessages((prev) => [...prev, { role: "bot", text: botText }]);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: "bot", text: "Oops! Something went wrong. Please check your connection. 😅" }]);
+      setMessages((prev) => [...prev, { role: "bot", text: "Oops! Something went wrong. Please check your connection." }]);
     } finally {
       setIsLoading(false);
     }
@@ -154,10 +170,23 @@ export default function AICoach() {
   };
 
   const clearChat = () => {
-    setMessages([{
-      role: "bot",
-      text: "Chat cleared! 🌟 How can I help you today?",
-    }]);
+    setMessages([{ role: "bot", text: "Chat cleared! How can I help you today? 🌟" }]);
+  };
+
+  const handlePlayMusic = () => {
+    if (musicPlaying) {
+      setMusicPlaying(false);
+      setShowYouTube(false);
+    } else {
+      setMusicPlaying(true);
+      setShowYouTube(true);
+    }
+  };
+
+  const switchTrack = (i) => {
+    setCurrentTrack(i);
+    setMusicPlaying(true);
+    setShowYouTube(true);
   };
 
   return (
@@ -178,11 +207,14 @@ export default function AICoach() {
         />
 
         <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${sidebarCollapsed ? "lg:ml-20" : "lg:ml-60"}`}>
+
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-500 to-violet-600 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-md text-white/70 hover:text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
               </button>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                 <span className="text-white font-bold">AI</span>
@@ -214,6 +246,22 @@ export default function AICoach() {
             </div>
           </div>
 
+          {/* YouTube Player - shows when music is playing */}
+          {showYouTube && (
+            <div className="bg-black flex justify-center items-center" style={{height: "180px"}}>
+              <iframe
+                key={currentTrack}
+                width="100%"
+                height="180"
+                src={`https://www.youtube.com/embed/${TRACKS[currentTrack].youtubeId}?autoplay=1&controls=1`}
+                title={TRACKS[currentTrack].name}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                style={{border: "none"}}
+              />
+            </div>
+          )}
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6">
             <div className="max-w-3xl mx-auto">
@@ -225,49 +273,64 @@ export default function AICoach() {
             </div>
           </div>
 
-          {/* Input */}
-          <div className="bg-card border-t border-border px-4 md:px-8 py-4">
-            <div className="max-w-3xl mx-auto flex items-end gap-3">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Talk to your AI Coach... (Enter to send, Shift+Enter for new line)"
-                rows={1}
-                className="flex-1 resize-none bg-muted text-foreground text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-400 placeholder-muted-foreground max-h-32 overflow-y-auto transition-all"
-                style={{ lineHeight: "1.5" }}
-              />
-              <button onClick={() => sendMessage()}
-                disabled={!input.trim() || isLoading}
-                className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md flex-shrink-0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/>
-                </svg>
-              </button>
-            </div>
-            {/* Focus Music Player */}
-            <div className="mt-3 bg-muted/40 rounded-xl p-3 flex items-center gap-3">
-              <span className="text-lg">{TRACKS[currentTrack].emoji}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">{TRACKS[currentTrack].name}</p>
-                <p className="text-xs text-muted-foreground">Focus Music</p>
+          {/* Bottom Input Area */}
+          <div className="bg-card border-t border-border px-4 md:px-8 py-3">
+            <div className="max-w-3xl mx-auto">
+
+              {/* Music Player bar - above input */}
+              <div className="flex items-center gap-2 mb-3 bg-muted/50 rounded-xl px-3 py-2">
+                <span className="text-base">{TRACKS[currentTrack].emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{TRACKS[currentTrack].name}</p>
+                  <p className="text-xs text-muted-foreground">{TRACKS[currentTrack].description}</p>
+                </div>
+                {/* Track switcher */}
+                <div className="flex gap-1">
+                  {TRACKS.map((t, i) => (
+                    <button key={i} onClick={() => switchTrack(i)}
+                      title={t.name}
+                      className={`w-6 h-6 rounded-full text-xs flex items-center justify-center transition-all ${
+                        currentTrack === i
+                          ? "bg-indigo-500 text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}>
+                      {t.emoji}
+                    </button>
+                  ))}
+                </div>
+                {/* Play/Pause */}
+                <button
+                  onClick={handlePlayMusic}
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-sm hover:opacity-90 flex-shrink-0 ml-1">
+                  {musicPlaying ? "⏸" : "▶"}
+                </button>
               </div>
-              <div className="flex gap-1">
-                {TRACKS.map((t, i) => (
-                  <button key={i} onClick={() => { setCurrentTrack(i); setMusicPlaying(false); }}
-                    className={`w-6 h-6 rounded-full text-xs flex items-center justify-center transition-all ${currentTrack === i ? 'bg-indigo-500 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
-                    {t.emoji}
-                  </button>
-                ))}
+
+              {/* Input + Send */}
+              <div className="flex items-end gap-3">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Talk to your AI Coach... (Enter to send, Shift+Enter for new line)"
+                  rows={1}
+                  className="flex-1 resize-none bg-muted text-foreground text-sm rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-400 placeholder-muted-foreground max-h-32 overflow-y-auto transition-all"
+                  style={{ lineHeight: "1.5" }}
+                />
+                <button onClick={() => sendMessage()}
+                  disabled={!input.trim() || isLoading}
+                  className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/>
+                  </svg>
+                </button>
               </div>
-              <button onClick={() => setMusicPlaying(p => !p)}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-sm hover:opacity-90">
-                {musicPlaying ? '⏸' : '▶'}
-              </button>
+
+              <p className="text-center text-xs text-muted-foreground mt-2">Powered by Gemini AI • Your conversations are private 🔒</p>
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-2">Powered by Gemini AI • Your conversations are private 🔒</p>
           </div>
+
         </main>
       </div>
     </>

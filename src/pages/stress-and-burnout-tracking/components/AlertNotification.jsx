@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
   const navigate = useNavigate();
+
   if (!alerts || alerts?.length === 0) return null;
 
   return (
@@ -13,8 +14,8 @@ const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
         <div
           key={alert?.id}
           className={`border-2 rounded-xl p-4 md:p-6 shadow-soft-md ${
-            alert?.severity === 'high' ?'bg-destructive/10 border-destructive/30'
-              : alert?.severity === 'medium' ?'bg-warning/10 border-warning/30' :'bg-primary/10 border-primary/30'
+            alert?.severity === 'high' ? 'bg-destructive/10 border-destructive/30'
+              : alert?.severity === 'medium' ? 'bg-warning/10 border-warning/30' : 'bg-primary/10 border-primary/30'
           }`}
         >
           <div className="flex items-start gap-3 md:gap-4">
@@ -22,8 +23,8 @@ const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
               name={alert?.icon}
               size={24}
               className={`flex-shrink-0 mt-1 ${
-                alert?.severity === 'high' ?'text-destructive'
-                  : alert?.severity === 'medium' ?'text-warning' :'text-primary'
+                alert?.severity === 'high' ? 'text-destructive'
+                  : alert?.severity === 'medium' ? 'text-warning' : 'text-primary'
               }`}
             />
             <div className="flex-1 min-w-0">
@@ -61,7 +62,7 @@ const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
                   size="sm"
                   iconName="BookOpen"
                   iconPosition="left"
-                  onClick={() => onViewResources(alert?.resourceType)}
+                  onClick={() => navigate('/guidance-hub')}
                   className="sm:flex-1"
                 >
                   View Resources
@@ -71,8 +72,8 @@ const AlertNotification = ({ alerts, onDismiss, onViewResources }) => {
                   size="sm"
                   iconName="MessageSquare"
                   iconPosition="left"
-                  className="sm:flex-1"
                   onClick={() => navigate('/ai-coach')}
+                  className="sm:flex-1"
                 >
                   Talk to AI Coach
                 </Button>

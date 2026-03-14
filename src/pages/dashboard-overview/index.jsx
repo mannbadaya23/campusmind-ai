@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { requestNotificationPermission } from '../../firebase';
-
 import Sidebar from '../../components/ui/Sidebar';
 import MobileMenuToggle from '../../components/ui/MobileMenuToggle';
-
 import StatsCard from './components/StatsCard';
 import StressLevelWidget from './components/StressLevelWidget';
 import UpcomingTasksWidget from './components/UpcomingTasksWidget';
@@ -16,16 +14,7 @@ import BurnoutAlertWidget from './components/BurnoutAlertWidget';
 import QuickActionsPanel from './components/QuickActionsPanel';
 import ExamCountdown from './components/ExamCountdown';
 import WeeklyReportCard from './components/WeeklyReportCard';
-
-const weeklyData = [
-  { day: 'Mon', studyHours: 3, stressLevel: 4 },
-  { day: 'Tue', studyHours: 5, stressLevel: 6 },
-  { day: 'Wed', studyHours: 4, stressLevel: 5 },
-  { day: 'Thu', studyHours: 6, stressLevel: 3 },
-  { day: 'Fri', studyHours: 7, stressLevel: 4 },
-  { day: 'Sat', studyHours: 5, stressLevel: 2 },
-  { day: 'Sun', studyHours: 3, stressLevel: 3 },
-];
+import { useFirestore } from '../../hooks/useFirestore';
 
 const badges = [
   { id: 1, name: '7-Day Streak', icon: 'Flame', earned: true, earnedDate: 'Jan 10' },
@@ -34,13 +23,6 @@ const badges = [
   { id: 4, name: 'Stress Free', icon: 'Heart', earned: false, earnedDate: '' },
   { id: 5, name: 'Top Scorer', icon: 'Trophy', earned: false, earnedDate: '' },
   { id: 6, name: 'Night Owl', icon: 'Moon', earned: false, earnedDate: '' },
-];
-
-const tasks = [
-  { id: 1, title: 'Complete Data Structures Assignment', dueDate: 'Mar 2', dueTime: '11:59 PM', priority: 'high' },
-  { id: 2, title: 'Read Chapter 5 - Operating Systems', dueDate: 'Mar 3', dueTime: '6:00 PM', priority: 'medium' },
-  { id: 3, title: 'Practice 10 DSA problems', dueDate: 'Mar 4', dueTime: '8:00 PM', priority: 'medium' },
-  { id: 4, title: 'Submit Lab Report', dueDate: 'Mar 5', dueTime: '5:00 PM', priority: 'low' },
 ];
 
 const recentChats = [
@@ -54,7 +36,83 @@ const DashboardOverview = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotifPopup, setShowNotifPopup] = useState(false);
 
+  // Real data from Firestore
+  const [tasks, setTasks] = useState([]);
+  const [stressLevel, setStressLevel] = useState(0);
+  const [studyStreak, setStudyStreak] = useState(0);
+  const [totalStudyHours, setTotalStudyHours] = useState(0);
+  const [productivity, setProductivity] = useState(0);
+  const [weeklyData, setWeeklyData] = useState([
+    { day: 'Mon', studyHours: 0, stressLevel: 0 },
+    { day: 'Tue', studyHours: 0, stressLevel: 0 },
+    { day: 'Wed', studyHours: 0, stressLevel: 0 },
+    { day: 'Thu', studyHours: 0, stressLevel: 0 },
+    { day: 'Fri', studyHours: 0, stressLevel: 0 },
+    { day: 'Sat', studyHours: 0, stressLevel: 0 },
+    { day: 'Sun', studyHours: 0, stressLevel: 0 },
+  ]);
+
+  const { loadTasks, loadStressLogs, loadWeeklyStats } = useFirestore();
+
   if (!user) return <Navigate to="/login" replace />;
+
+  // Load all real data from Firestore
+  useEffect(() => {
+    const fetchAll = async () => {
+      // Load tasks
+      const savedTasks = await loadTasks();
+      if (savedTasks && savedTasks.length > 0) {
+        setTasks(savedTasks);
+        // Calculate productivity from tasks
+        const completed = savedTasks.filter(t => t.completed).length;
+        const total = savedTasks.length;
+        const prod = total > 0 ? Math.round((completed / total) * 100) : 0;
+        setProductivity(prod);
+      }
+
+      // Load stress logs
+      const stressLogs = await loadStressLogs();
+      if (stressLogs && stressLogs.length > 0) {
+        setStressLevel(stressLogs[0]?.stressLevel || 0);
+
+        // Build weekly chart from stress logs
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const today = new Date();
+        const chartData = days.map((day, i) => {
+          const d = new Date(today);
+          d.setDate(today.getDate() - (6 - i));
+          const dateStr = d.toISOString().split('T')[0];
+          const log = stressLogs.find(l => l.date === dateStr);
+          return {
+            day,
+            studyHours: log?.studyHours || 0,
+            stressLevel: log?.stressLevel || 0
+          };
+        });
+        setWeeklyData(chartData);
+
+        // Calculate study streak
+        let streak = 0;
+        const todayStr = today.toISOString().split('T')[0];
+        for (let i = 0; i < stressLogs.length; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          const ds = d.toISOString().split('T')[0];
+          if (stressLogs.find(l => l.date === ds)) streak++;
+          else break;
+        }
+        setStudyStreak(streak);
+      }
+
+      // Load weekly study stats
+      const weekStats = await loadWeeklyStats();
+      if (weekStats && weekStats.length > 0) {
+        const totalHours = weekStats.reduce((sum, s) => sum + (s.studyHours || 0), 0);
+        setTotalStudyHours(totalHours.toFixed(1));
+      }
+    };
+    fetchAll();
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = isSidebarOpen ? 'hidden' : '';
@@ -71,6 +129,10 @@ const DashboardOverview = () => {
 
   const displayName = user?.email?.split('@')[0] || 'Student';
 
+  // Calculate real stats from tasks
+  const completedTasks = tasks.filter(t => t.completed).length;
+  const totalTasks = tasks.length;
+
   return (
     <div className="min-h-screen bg-background">
       <MobileMenuToggle isOpen={isSidebarOpen} onClick={() => setIsSidebarOpen(true)} />
@@ -78,37 +140,38 @@ const DashboardOverview = () => {
         isOpen={isSidebarOpen}
         isCollapsed={isSidebarCollapsed}
         onClose={() => setIsSidebarOpen(false)}
-        onToggleCollapse={() => setIsSidebarCollapsed((p) => !p)}
+        onToggleCollapse={() => setIsSidebarCollapsed(p => !p)}
       />
 
       <main className={`pt-20 lg:pt-8 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-60'}`}>
-        <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto pb-10">
+        <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
           <h1 className="text-2xl font-semibold mb-1">Welcome back, {displayName}! 👋</h1>
           <p className="text-muted-foreground mb-6">{formattedDate}</p>
 
-          {/* Stats */}
+          {/* Real Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatsCard icon="Flame" label="Study Streak" value="12 days" />
-            <StatsCard icon="Target" label="Tasks Completed" value="24/30" />
-            <StatsCard icon="Clock" label="Study Hours" value="42.5h" />
-            <StatsCard icon="TrendingUp" label="Productivity" value="87%" />
+            <StatsCard icon="Flame" label="Study Streak"
+              value={studyStreak > 0 ? `${studyStreak} days` : 'Start today!'} />
+            <StatsCard icon="Target" label="Tasks Completed"
+              value={totalTasks > 0 ? `${completedTasks}/${totalTasks}` : 'No tasks yet'} />
+            <StatsCard icon="Clock" label="Study Hours"
+              value={totalStudyHours > 0 ? `${totalStudyHours}h` : 'Log stress to track'} />
+            <StatsCard icon="TrendingUp" label="Productivity"
+              value={totalTasks > 0 ? `${productivity}%` : 'Add tasks first'} />
           </div>
 
-          {/* Quick Actions */}
           <QuickActionsPanel />
 
           {/* Stress + Tasks */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <StressLevelWidget currentLevel={7} weeklyAverage={5.4} lastUpdated="Today 2PM" />
+            <StressLevelWidget
+              currentLevel={stressLevel}
+              weeklyAverage={weeklyData.reduce((s, d) => s + d.stressLevel, 0) / 7 || 0}
+              lastUpdated="Today"
+            />
             <div className="lg:col-span-2">
-              <UpcomingTasksWidget tasks={tasks} />
+              <UpcomingTasksWidget tasks={tasks.filter(t => !t.completed).slice(0, 4)} />
             </div>
-          </div>
-
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <WeeklyProgressChart data={weeklyData} />
-            <AICoachWidget recentChats={recentChats} />
           </div>
 
           {/* Exam Countdown + Weekly Report */}
@@ -117,10 +180,16 @@ const DashboardOverview = () => {
             <WeeklyReportCard />
           </div>
 
+          {/* Weekly Chart + AI Coach */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <WeeklyProgressChart data={weeklyData} />
+            <AICoachWidget recentChats={recentChats} />
+          </div>
+
           {/* Burnout + Achievements */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <BurnoutAlertWidget
-              riskLevel="medium"
+              riskLevel={stressLevel >= 7 ? 'high' : stressLevel >= 5 ? 'medium' : 'low'}
               recommendations={[
                 'Take a 10-minute break every hour',
                 'Get at least 7-8 hours of sleep',
@@ -138,9 +207,13 @@ const DashboardOverview = () => {
           <p className="mb-2 text-sm text-foreground">Enable notifications</p>
           <div className="flex gap-2">
             <button className="px-3 py-1 bg-primary text-white rounded text-sm"
-              onClick={() => { requestNotificationPermission(); setShowNotifPopup(false); }}>Allow</button>
+              onClick={() => { requestNotificationPermission(); setShowNotifPopup(false); }}>
+              Allow
+            </button>
             <button className="px-3 py-1 border border-border rounded text-sm"
-              onClick={() => setShowNotifPopup(false)}>Not now</button>
+              onClick={() => setShowNotifPopup(false)}>
+              Not now
+            </button>
           </div>
         </div>
       )}

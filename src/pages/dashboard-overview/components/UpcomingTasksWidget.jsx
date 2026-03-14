@@ -1,17 +1,16 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
+import { useNavigate } from 'react-router-dom';
 
 const UpcomingTasksWidget = ({ tasks }) => {
+  const navigate = useNavigate();
+
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high':
-        return 'text-error bg-error/10';
-      case 'medium':
-        return 'text-warning bg-warning/10';
-      case 'low':
-        return 'text-success bg-success/10';
-      default:
-        return 'text-muted-foreground bg-muted';
+      case 'high': return 'text-error bg-error/10';
+      case 'medium': return 'text-warning bg-warning/10';
+      case 'low': return 'text-success bg-success/10';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -22,11 +21,10 @@ const UpcomingTasksWidget = ({ tasks }) => {
         <Icon name="CheckSquare" size={20} className="text-muted-foreground" />
       </div>
       <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
-        {tasks?.slice(0, 4)?.map((task) => (
-          <div
-            key={task?.id}
-            className="flex items-start gap-3 p-3 md:p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-smooth cursor-pointer"
-          >
+        {tasks?.length > 0 ? tasks?.slice(0, 4)?.map((task) => (
+          <div key={task?.id}
+            onClick={() => navigate('/study-planner')}
+            className="flex items-start gap-3 p-3 md:p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-smooth cursor-pointer">
             <div className="flex-shrink-0 mt-1">
               <div className="w-5 h-5 md:w-6 md:h-6 rounded border-2 border-muted-foreground" />
             </div>
@@ -34,23 +32,29 @@ const UpcomingTasksWidget = ({ tasks }) => {
               <p className="text-sm md:text-base font-medium text-foreground mb-1 line-clamp-1">{task?.title}</p>
               <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Icon name="Calendar" size={14} />
-                  {task?.dueDate}
+                  <Icon name="Calendar" size={14} />{task?.dueDate}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Icon name="Clock" size={14} />
-                  {task?.dueTime}
-                </span>
+                {task?.dueTime && (
+                  <span className="flex items-center gap-1">
+                    <Icon name="Clock" size={14} />{task?.dueTime}
+                  </span>
+                )}
               </div>
             </div>
             <span className={`flex-shrink-0 px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task?.priority)}`}>
               {task?.priority}
             </span>
           </div>
-        ))}
+        )) : (
+          <div className="text-center py-6 text-muted-foreground">
+            <p className="text-3xl mb-2">✅</p>
+            <p className="text-sm">No tasks yet! Go to Study Planner to add tasks.</p>
+          </div>
+        )}
       </div>
       <div className="pt-4 border-t border-border">
-        <button className="w-full flex items-center justify-center gap-2 py-2 md:py-3 text-sm md:text-base font-medium text-primary hover:text-primary/80 transition-smooth">
+        <button onClick={() => navigate('/study-planner')}
+          className="w-full flex items-center justify-center gap-2 py-2 md:py-3 text-sm md:text-base font-medium text-primary hover:text-primary/80 transition-smooth">
           <Icon name="Plus" size={18} />
           Add New Task
         </button>

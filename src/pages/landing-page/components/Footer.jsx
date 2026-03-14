@@ -11,7 +11,7 @@ const Footer = () => {
       { label: "Features", path: "/landing-page" },
       { label: "Dashboard", path: "/dashboard-overview" },
       { label: "Study Planner", path: "/study-planner" },
-      { label: "AI Coach", path: "/landing-page" }
+      { label: "AI Coach", path: "/ai-coach" }
     ],
     company: [
       { label: "About Us", path: "/landing-page" },
@@ -60,36 +60,21 @@ const Footer = () => {
             </p>
 
             <div className="mt-6 space-y-2 text-sm md:text-base">
-  <p className="font-semibold text-foreground">
-    Contact & Team
-  </p>
+              <p className="font-semibold text-foreground">Contact</p>
+              <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">Founder & CEO:</span>{" "}
+                Mann Badaya
+              </p>
+              <p className="text-muted-foreground flex items-center gap-2">
+                <Icon name="Phone" size={16} className="text-primary" />
+                <span>+91 6350200535</span>
+              </p>
+            </div>
 
-  <p className="text-muted-foreground">
-    <span className="font-medium text-foreground">Founder & CEO:</span>{" "}
-    Mann Badaya
-  </p>
-
-  <p className="text-muted-foreground">
-    <span className="font-medium text-foreground">Co-Founder:</span>{" "}
-    Amrit Sharma
-  </p>
-
-  <p className="text-muted-foreground flex items-center gap-2">
-    <Icon name="Phone" size={16} className="text-primary" />
-    <span>+91 6350200535</span>
-  </p>
-</div>
-
-            
-
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mt-4">
               {socialLinks?.map((social, index) => (
-                <a
-                  key={index}
-                  href={social?.url}
-                  aria-label={social?.label}
-                  className="flex items-center justify-center w-10 h-10 bg-muted hover:bg-primary hover:text-white rounded-lg transition-smooth"
-                >
+                <a key={index} href={social?.url} aria-label={social?.label}
+                  className="flex items-center justify-center w-10 h-10 bg-muted hover:bg-primary hover:text-white rounded-lg transition-smooth">
                   <Icon name={social?.icon} size={18} />
                 </a>
               ))}
@@ -97,16 +82,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-              Product
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Product</h3>
             <ul className="space-y-3">
               {footerLinks?.product?.map((link, index) => (
                 <li key={index}>
-                  <button
-                    onClick={() => navigate(link?.path)}
-                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth"
-                  >
+                  <button onClick={() => navigate(link?.path)}
+                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth">
                     {link?.label}
                   </button>
                 </li>
@@ -115,16 +96,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-              Company
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks?.company?.map((link, index) => (
                 <li key={index}>
-                  <button
-                    onClick={() => navigate(link?.path)}
-                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth"
-                  >
+                  <button onClick={() => navigate(link?.path)}
+                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth">
                     {link?.label}
                   </button>
                 </li>
@@ -133,16 +110,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-              Resources
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Resources</h3>
             <ul className="space-y-3">
               {footerLinks?.resources?.map((link, index) => (
                 <li key={index}>
-                  <button
-                    onClick={() => navigate(link?.path)}
-                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth"
-                  >
+                  <button onClick={() => navigate(link?.path)}
+                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth">
                     {link?.label}
                   </button>
                 </li>
@@ -151,16 +124,12 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-              Legal
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Legal</h3>
             <ul className="space-y-3">
               {footerLinks?.legal?.map((link, index) => (
                 <li key={index}>
-                  <button
-                    onClick={() => navigate(link?.path)}
-                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth"
-                  >
+                  <button onClick={() => navigate(link?.path)}
+                    className="text-sm md:text-base text-muted-foreground hover:text-primary transition-smooth">
                     {link?.label}
                   </button>
                 </li>
@@ -174,7 +143,6 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground text-center md:text-left">
               &copy; {currentYear} CampusMind AI. All rights reserved.
             </p>
-
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Icon name="Shield" size={16} className="text-success" />

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFirestore } from '../../../hooks/useFirestore';
 
 const DEFAULT_HABITS = [
   { id: 1, name: 'Study 4+ hours', icon: '📚', completed: false },
@@ -10,18 +11,43 @@ const DEFAULT_HABITS = [
 ];
 
 export default function HabitTracker() {
+  const { saveHabits, loadTodayHabits } = useFirestore();
   const [habits, setHabits] = useState(DEFAULT_HABITS);
   const [newHabit, setNewHabit] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const toggle = (id) => setHabits(h => h.map(x => x.id === id ? { ...x, completed: !x.completed } : x));
-  const completed = habits.filter(h => h.completed).length;
-  const percent = Math.round((completed / habits.length) * 100);
+  // Load today's habits from Firestore
+  useEffect(() => {
+    const fetch = async () => {
+      const saved = await loadTodayHabits();
+      if (saved && saved.length > 0) setHabits(saved);
+      setLoading(false);
+    };
+    fetch();
+  }, []);
 
-  const addHabit = () => {
+  const toggle = async (id) => {
+    const updated = habits.map(x => x.id === id ? { ...x, completed: !x.completed } : x);
+    setHabits(updated);
+    await saveHabits(updated); // Auto-save to Firestore
+  };
+
+  const addHabit = async () => {
     if (!newHabit.trim()) return;
-    setHabits(h => [...h, { id: Date.now(), name: newHabit.trim(), icon: '✅', completed: false }]);
+    const updated = [...habits, { id: Date.now(), name: newHabit.trim(), icon: '✅', completed: false }];
+    setHabits(updated);
+    await saveHabits(updated);
     setNewHabit('');
   };
+
+  const completed = habits.filter(h => h.completed).length;
+  const percent = habits.length > 0 ? Math.round((completed / habits.length) * 100) : 0;
+
+  if (loading) return (
+    <div className="bg-card border border-border rounded-xl p-6 shadow-soft flex items-center justify-center h-40">
+      <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="bg-card border border-border rounded-xl p-4 md:p-6 shadow-soft">
@@ -64,9 +90,7 @@ export default function HabitTracker() {
           placeholder="Add new habit..."
           className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-indigo-400" />
         <button onClick={addHabit}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90">
-          +
-        </button>
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium hover:opacity-90">+</button>
       </div>
     </div>
   );

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 
 const PRACTICE_SETS = [
-  { id: 1, title: "DSA - Arrays & Strings", questions: 50, difficulty: "Mixed", completed: 12, subject: "Computer Science", color: "from-indigo-400 to-violet-500", time: "45 min" },
+  { id: 1, title: "DSA - Arrays & Strings", questions: 50, difficulty: "Mixed", completed: 0, subject: "Computer Science", color: "from-indigo-400 to-violet-500", time: "45 min" },
   { id: 2, title: "Quantitative Aptitude - CAT Level", questions: 30, difficulty: "Hard", completed: 0, subject: "Business", color: "from-amber-400 to-orange-500", time: "60 min" },
-  { id: 3, title: "NEET Biology Mock Test", questions: 90, difficulty: "Medium", completed: 45, subject: "Medicine", color: "from-pink-400 to-rose-500", time: "90 min" },
+  { id: 3, title: "NEET Biology Mock Test", questions: 90, difficulty: "Medium", completed: 0, subject: "Medicine", color: "from-pink-400 to-rose-500", time: "90 min" },
   { id: 4, title: "JEE Physics - Mechanics", questions: 40, difficulty: "Hard", completed: 0, subject: "Engineering", color: "from-blue-400 to-indigo-500", time: "50 min" },
-  { id: 5, title: "GATE - Digital Logic", questions: 35, difficulty: "Medium", completed: 35, subject: "Computer Science", color: "from-emerald-400 to-teal-500", time: "40 min" },
-  { id: 6, title: "Verbal Ability - Reading Comprehension", questions: 25, difficulty: "Easy", completed: 10, subject: "General", color: "from-purple-400 to-violet-500", time: "30 min" },
+  { id: 5, title: "GATE - Digital Logic", questions: 35, difficulty: "Medium", completed: 0, subject: "Computer Science", color: "from-emerald-400 to-teal-500", time: "40 min" },
+  { id: 6, title: "Verbal Ability - Reading Comprehension", questions: 25, difficulty: "Easy", completed: 0, subject: "General", color: "from-purple-400 to-violet-500", time: "30 min" },
 ];
 
 const DIFFICULTY_COLOR = {

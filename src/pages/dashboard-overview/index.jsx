@@ -15,6 +15,7 @@ import QuickActionsPanel from './components/QuickActionsPanel';
 import ExamCountdown from './components/ExamCountdown';
 import WeeklyReportCard from './components/WeeklyReportCard';
 import { useFirestore } from '../../hooks/useFirestore';
+import WelcomePopup from '../../components/ui/WelcomePopup';
 
 const badges = [
   { id: 1, name: '7-Day Streak', icon: 'Flame', earned: true, earnedDate: 'Jan 10' },
@@ -35,8 +36,6 @@ const DashboardOverview = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotifPopup, setShowNotifPopup] = useState(false);
-
-  // Real data from Firestore
   const [tasks, setTasks] = useState([]);
   const [stressLevel, setStressLevel] = useState(0);
   const [studyStreak, setStudyStreak] = useState(0);
@@ -56,26 +55,19 @@ const DashboardOverview = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // Load all real data from Firestore
   useEffect(() => {
     const fetchAll = async () => {
-      // Load tasks
       const savedTasks = await loadTasks();
       if (savedTasks && savedTasks.length > 0) {
         setTasks(savedTasks);
-        // Calculate productivity from tasks
         const completed = savedTasks.filter(t => t.completed).length;
         const total = savedTasks.length;
-        const prod = total > 0 ? Math.round((completed / total) * 100) : 0;
-        setProductivity(prod);
+        setProductivity(total > 0 ? Math.round((completed / total) * 100) : 0);
       }
 
-      // Load stress logs
       const stressLogs = await loadStressLogs();
       if (stressLogs && stressLogs.length > 0) {
         setStressLevel(stressLogs[0]?.stressLevel || 0);
-
-        // Build weekly chart from stress logs
         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const today = new Date();
         const chartData = days.map((day, i) => {
@@ -83,17 +75,10 @@ const DashboardOverview = () => {
           d.setDate(today.getDate() - (6 - i));
           const dateStr = d.toISOString().split('T')[0];
           const log = stressLogs.find(l => l.date === dateStr);
-          return {
-            day,
-            studyHours: log?.studyHours || 0,
-            stressLevel: log?.stressLevel || 0
-          };
+          return { day, studyHours: log?.studyHours || 0, stressLevel: log?.stressLevel || 0 };
         });
         setWeeklyData(chartData);
-
-        // Calculate study streak
         let streak = 0;
-        const todayStr = today.toISOString().split('T')[0];
         for (let i = 0; i < stressLogs.length; i++) {
           const d = new Date(today);
           d.setDate(today.getDate() - i);
@@ -104,7 +89,6 @@ const DashboardOverview = () => {
         setStudyStreak(streak);
       }
 
-      // Load weekly study stats
       const weekStats = await loadWeeklyStats();
       if (weekStats && weekStats.length > 0) {
         const totalHours = weekStats.reduce((sum, s) => sum + (s.studyHours || 0), 0);
@@ -128,8 +112,6 @@ const DashboardOverview = () => {
   });
 
   const displayName = user?.email?.split('@')[0] || 'Student';
-
-  // Calculate real stats from tasks
   const completedTasks = tasks.filter(t => t.completed).length;
   const totalTasks = tasks.length;
 
@@ -148,45 +130,32 @@ const DashboardOverview = () => {
           <h1 className="text-2xl font-semibold mb-1">Welcome back, {displayName}! 👋</h1>
           <p className="text-muted-foreground mb-6">{formattedDate}</p>
 
-          {/* Real Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatsCard icon="Flame" label="Study Streak"
-              value={studyStreak > 0 ? `${studyStreak} days` : 'Start today!'} />
-            <StatsCard icon="Target" label="Tasks Completed"
-              value={totalTasks > 0 ? `${completedTasks}/${totalTasks}` : 'No tasks yet'} />
-            <StatsCard icon="Clock" label="Study Hours"
-              value={totalStudyHours > 0 ? `${totalStudyHours}h` : 'Log stress to track'} />
-            <StatsCard icon="TrendingUp" label="Productivity"
-              value={totalTasks > 0 ? `${productivity}%` : 'Add tasks first'} />
+            <StatsCard icon="Flame" label="Study Streak" value={studyStreak > 0 ? `${studyStreak} days` : 'Start today!'} />
+            <StatsCard icon="Target" label="Tasks Completed" value={totalTasks > 0 ? `${completedTasks}/${totalTasks}` : 'No tasks yet'} />
+            <StatsCard icon="Clock" label="Study Hours" value={totalStudyHours > 0 ? `${totalStudyHours}h` : 'Log stress to track'} />
+            <StatsCard icon="TrendingUp" label="Productivity" value={totalTasks > 0 ? `${productivity}%` : 'Add tasks first'} />
           </div>
 
           <QuickActionsPanel />
 
-          {/* Stress + Tasks */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <StressLevelWidget
-              currentLevel={stressLevel}
-              weeklyAverage={weeklyData.reduce((s, d) => s + d.stressLevel, 0) / 7 || 0}
-              lastUpdated="Today"
-            />
+            <StressLevelWidget currentLevel={stressLevel} weeklyAverage={weeklyData.reduce((s, d) => s + d.stressLevel, 0) / 7 || 0} lastUpdated="Today" />
             <div className="lg:col-span-2">
               <UpcomingTasksWidget tasks={tasks.filter(t => !t.completed).slice(0, 4)} />
             </div>
           </div>
 
-          {/* Exam Countdown + Weekly Report */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <ExamCountdown />
             <WeeklyReportCard />
           </div>
 
-          {/* Weekly Chart + AI Coach */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <WeeklyProgressChart data={weeklyData} />
             <AICoachWidget recentChats={recentChats} />
           </div>
 
-          {/* Burnout + Achievements */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <BurnoutAlertWidget
               riskLevel={stressLevel >= 7 ? 'high' : stressLevel >= 5 ? 'medium' : 'low'}
@@ -202,6 +171,10 @@ const DashboardOverview = () => {
         </div>
       </main>
 
+      {/* Welcome Popup - shows 5 sec after login */}
+      <WelcomePopup />
+
+      {/* Notification Popup */}
       {showNotifPopup && (
         <div className="fixed bottom-5 right-5 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg z-[2000] border border-border">
           <p className="mb-2 text-sm text-foreground">Enable notifications</p>

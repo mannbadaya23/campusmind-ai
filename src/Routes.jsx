@@ -12,72 +12,35 @@ import StressAndBurnoutTracking from "./pages/stress-and-burnout-tracking";
 import LandingPage from "./pages/landing-page";
 import StudyPlanner from "./pages/study-planner";
 import Signup from "./pages/signup";
-import GuidanceHub from "./pages/guidance-hub";
 import AICoach from "./pages/ai-coach";
+import GuidanceHub from "./pages/guidance-hub";
+import PricingPage from "./pages/pricing";
+import TermsAndPrivacy from "./pages/legal";
 
 const Routes = () => {
   return (
     <BrowserRouter>
       <ErrorBoundary>
         <ScrollToTop />
-
         <RouterRoutes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing-page" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/legal" element={<TermsAndPrivacy />} />
 
           {/* Protected Routes */}
-          <Route
-            path="/dashboard-overview"
-            element={
-              <ProtectedRoute>
-                <DashboardOverview />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/study-planner"
-            element={
-              <ProtectedRoute>
-                <StudyPlanner />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/stress-and-burnout-tracking"
-            element={
-              <ProtectedRoute>
-                <StressAndBurnoutTracking />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/guidance-hub"
-            element={
-              <ProtectedRoute>
-                <GuidanceHub />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/ai-coach"
-            element={
-              <ProtectedRoute>
-                <AICoach />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard-overview" element={<ProtectedRoute><DashboardOverview /></ProtectedRoute>} />
+          <Route path="/study-planner" element={<ProtectedRoute><StudyPlanner /></ProtectedRoute>} />
+          <Route path="/stress-and-burnout-tracking" element={<ProtectedRoute><StressAndBurnoutTracking /></ProtectedRoute>} />
+          <Route path="/ai-coach" element={<ProtectedRoute><AICoach /></ProtectedRoute>} />
+          <Route path="/guidance-hub" element={<ProtectedRoute><GuidanceHub /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<NotFound />} />
         </RouterRoutes>
-
       </ErrorBoundary>
     </BrowserRouter>
   );

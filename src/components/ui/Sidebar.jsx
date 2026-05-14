@@ -59,17 +59,16 @@ const Sidebar = ({
           </div>
 
           {/* NAV */}
-          <nav className="flex-1 px-3 space-y-2">
+          <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
             {navigationItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center h-11 px-3 rounded-md transition
-                   ${
-                     isActive
-                       ? 'bg-primary/10 text-primary'
-                       : 'text-muted-foreground hover:bg-muted'
+                   ${isActive
+                     ? 'bg-primary/10 text-primary'
+                     : 'text-muted-foreground hover:bg-muted'
                    }`
                 }
               >
@@ -77,6 +76,21 @@ const Sidebar = ({
                 {!isCollapsed && <span className="ml-3">{item.label}</span>}
               </NavLink>
             ))}
+
+            {/* Pricing Link - highlighted */}
+            <NavLink
+              to="/pricing"
+              className={({ isActive }) =>
+                `flex items-center h-11 px-3 rounded-md transition mt-2
+                 ${isActive
+                   ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white'
+                   : 'bg-gradient-to-r from-indigo-500/10 to-violet-600/10 text-indigo-500 hover:from-indigo-500/20 hover:to-violet-600/20'
+                 }`
+              }
+            >
+              <Icon name="Zap" size={20} />
+              {!isCollapsed && <span className="ml-3 font-medium">Upgrade to Pro ⚡</span>}
+            </NavLink>
           </nav>
 
           {/* USER */}
@@ -84,9 +98,7 @@ const Sidebar = ({
             {!isCollapsed && (
               <div className="text-sm text-muted-foreground">
                 Logged in as <br />
-                <span className="font-medium text-foreground">
-                  {displayName}
-                </span>
+                <span className="font-medium text-foreground">{displayName}</span>
               </div>
             )}
 
@@ -97,6 +109,19 @@ const Sidebar = ({
               <Icon name={isCollapsed ? 'PanelLeftOpen' : 'PanelLeftClose'} size={16} />
               {!isCollapsed && 'Collapse'}
             </button>
+
+            {/* Legal Links */}
+            {!isCollapsed && (
+              <div className="flex gap-3 text-xs text-muted-foreground">
+                <button onClick={() => navigate('/legal')} className="hover:text-foreground transition">
+                  Privacy
+                </button>
+                <span>·</span>
+                <button onClick={() => navigate('/legal')} className="hover:text-foreground transition">
+                  Terms
+                </button>
+              </div>
+            )}
 
             <button
               onClick={handleLogout}

@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,27 +16,20 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-export const messaging = getMessaging(app);
-
+// Notification permission - safe version without messaging SDK
 export const requestNotificationPermission = async () => {
   try {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      alert("Notification permission denied");
+    if (!('Notification' in window)) {
+      console.log('Notifications not supported');
       return null;
     }
-    const token = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
-    });
-    console.log("✅ FCM Token:", token);
-    alert("Notifications enabled successfully!");
-    return token;
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Notification permission granted');
+    }
+    return permission;
   } catch (error) {
-    console.error("❌ Error getting notification token:", error);
+    console.error('Notification error:', error);
     return null;
   }
 };
-
-onMessage(messaging, (payload) => {
-  console.log("📩 Foreground notification received:", payload);
-});

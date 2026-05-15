@@ -171,10 +171,8 @@ const DashboardOverview = () => {
         </div>
       </main>
 
-      {/* Welcome Popup - shows 5 sec after login */}
       <WelcomePopup />
 
-      {/* Notification Popup */}
       {showNotifPopup && (
         <div className="fixed bottom-5 right-5 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg z-[2000] border border-border">
           <p className="mb-2 text-sm text-foreground">Enable notifications</p>

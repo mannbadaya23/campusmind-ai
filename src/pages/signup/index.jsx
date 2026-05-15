@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../firebase";
+import emailjs from "@emailjs/browser";
 
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
@@ -9,6 +10,11 @@ import ProgressSteps from "./components/ProgressSteps";
 import AccountStep from "./components/AccountStep";
 import ProfileStep from "./components/ProfileStep";
 import CompletionStep from "./components/CompletionStep";
+
+// EmailJS Config
+const EMAILJS_SERVICE_ID = "service_hmgs7nc";
+const EMAILJS_WELCOME_TEMPLATE_ID = "template_1g2s8a3";
+const EMAILJS_PUBLIC_KEY = "tXMVDTfdHt_C8kzgZ";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -67,7 +73,28 @@ const Signup = () => {
 
   const handleBack = () => setCurrentStep((p) => p - 1);
 
-  // 🔥 REAL FIREBASE SIGNUP
+  // Send welcome email via EmailJS
+  const sendWelcomeEmail = async (email, name) => {
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_WELCOME_TEMPLATE_ID,
+        {
+          to_name: name || email.split("@")[0],
+          to_email: email,
+          reply_to: "noreply@campusmind-ai.web.app",
+          name: "CampusMind AI",
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+      console.log("Welcome email sent!");
+    } catch (error) {
+      // Don't block signup if email fails
+      console.error("Email error:", error);
+    }
+  };
+
+  // REAL FIREBASE SIGNUP
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep(3)) return;
@@ -85,6 +112,9 @@ const Signup = () => {
       await updateProfile(userCredential.user, {
         displayName: formData.fullName,
       });
+
+      // Send welcome email after successful signup
+      await sendWelcomeEmail(formData.email.trim(), formData.fullName);
 
       navigate("/dashboard-overview");
     } catch (error) {
